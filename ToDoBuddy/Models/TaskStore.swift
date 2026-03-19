@@ -7,7 +7,7 @@ final class TaskStore {
 
     var tasks: [TaskItem] = []
 
-    var selectedCharacterModel: String = UserDefaults.standard.string(forKey: "selectedCharacter") ?? "character" {
+    var selectedCharacterModel: String = UserDefaults.standard.string(forKey: "selectedCharacter") ?? "none" {
         didSet { UserDefaults.standard.set(selectedCharacterModel, forKey: "selectedCharacter") }
     }
 
@@ -79,6 +79,21 @@ final class TaskStore {
 
     func stringFromDate(_ d: Date) -> String {
         Self.dateFormatter.string(from: d)
+    }
+
+    private static let longDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .long
+        return f
+    }()
+
+    func formattedLongDate(_ dateString: String) -> String {
+        guard let date = dateFromString(dateString) else { return dateString }
+        return Self.longDateFormatter.string(from: date)
+    }
+
+    var formattedToday: String {
+        Self.longDateFormatter.string(from: Date())
     }
 
     // MARK: - Queries
@@ -231,6 +246,19 @@ final class TaskStore {
             dateChangeIncompleteCount = missed.count
             showDateChangeAlert = true
         }
+    }
+
+    func moveAllScheduledToToday() {
+        let today = todayString
+        var maxOrder = tasks.filter { $0.date == today }.map(\.sortOrder).max() ?? -1
+        for i in tasks.indices {
+            if tasks[i].date > today {
+                maxOrder += 1
+                tasks[i].date = today
+                tasks[i].sortOrder = maxOrder
+            }
+        }
+        save()
     }
 
     func moveAllMissedToToday() {

@@ -16,3 +16,7 @@ Before pushing to a public repository, ALWAYS validate:
 
 - Email: `mistrotheone@gmail.com`
 - Never use corporate/work email addresses in commits
+
+## Memory Update Rule
+
+After every code change, update the relevant memory file in the auto-memory directory to reflect the new state. Memory files: `MEMORY.md`, `modules/models.md`, `modules/views.md`, `modules/managers.md`, `modules/app-entry.md`.

@@ -3,14 +3,45 @@ import SwiftUI
 struct TodayView: View {
     var taskStore: TaskStore
     @State private var newTaskTitle = ""
+    @State private var showCopiedToast = false
+    @State private var showMoveAllAlert = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            taskList
-            Divider()
-            addTaskBar
+        ZStack {
+            VStack(spacing: 0) {
+                header
+                Divider()
+                taskList
+                Divider()
+                addTaskBar
+            }
+            .alert("Move All to Today?", isPresented: $showMoveAllAlert) {
+                Button("Move All", action: { taskStore.moveAllMissedToToday() })
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("All \(taskStore.missedTasks.count) missed tasks will be moved to today.")
+            }
+
+            // Toast overlay
+            if showCopiedToast {
+                VStack {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.white)
+                        Text("Copied to clipboard!")
+                            .foregroundStyle(.white)
+                            .font(.subheadline.bold())
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(.green))
+                    .shadow(radius: 4)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+
+                    Spacer()
+                }
+                .padding(.top, 8)
+            }
         }
     }
 
@@ -39,6 +70,17 @@ struct TodayView: View {
 
             let tasks = taskStore.todayTasks
             let done = tasks.filter(\.isCompleted).count
+
+            if done > 0 {
+                Button {
+                    copyCompletedTasks()
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+            }
+
             Text("\(done)/\(tasks.count)")
                 .font(.title3.monospacedDigit())
                 .foregroundStyle(.secondary)
@@ -75,9 +117,22 @@ struct TodayView: View {
                                 )
                             }
                         } header: {
-                            Label("Missed", systemImage: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
-                                .font(.subheadline.bold())
+                            HStack {
+                                Label("Missed", systemImage: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.red)
+                                    .font(.subheadline.bold())
+                                Spacer()
+                                if missed.count > 1 {
+                                    Button {
+                                        showMoveAllAlert = true
+                                    } label: {
+                                        Text("Move All to Today")
+                                            .font(.caption)
+                                            .foregroundStyle(.blue)
+                                    }
+                                    .buttonStyle(.borderless)
+                                }
+                            }
                         }
                     }
 
@@ -135,9 +190,7 @@ struct TodayView: View {
     // MARK: - Helpers
 
     private var formattedToday: String {
-        let f = DateFormatter()
-        f.dateStyle = .long
-        return f.string(from: Date())
+        taskStore.formattedToday
     }
 
     private func addTask() {
@@ -145,6 +198,23 @@ struct TodayView: View {
         guard !title.isEmpty else { return }
         taskStore.addTask(title: title, date: taskStore.todayString)
         newTaskTitle = ""
+    }
+
+    private func copyCompletedTasks() {
+        let completed = taskStore.todayTasks.filter(\.isCompleted)
+        let text = completed.enumerated().map { "\($0.offset + 1). \($0.element.title)" }.joined(separator: "\n")
+        let header = "Completed tasks - \(formattedToday)"
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("\(header)\n\(text)", forType: .string)
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showCopiedToast = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showCopiedToast = false
+            }
+        }
     }
 }
 

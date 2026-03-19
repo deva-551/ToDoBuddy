@@ -6,133 +6,132 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Choose Character")
-                .font(.title2.bold())
-                .padding(.horizontal)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                ForEach(CharacterOption.allOptions) { option in
-                    CharacterOptionCard(
-                        option: option,
-                        isSelected: taskStore.selectedCharacterModel == option.id
-                    ) {
-                        taskStore.selectedCharacterModel = option.id
-                    }
-                }
-            }
-            .padding(.horizontal)
-
-            Divider()
-                .padding(.horizontal)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Task Options")
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Choose Character")
                     .font(.title2.bold())
+                    .padding(.horizontal)
 
-                Toggle(isOn: Bindable(taskStore).undoFromHistoryEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Toggle from History")
-                            .font(.body)
-                        Text("Allow toggling tasks between completed and incomplete in history")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    ForEach(CharacterOption.allOptions) { option in
+                        CharacterOptionCard(
+                            option: option,
+                            isSelected: taskStore.selectedCharacterModel == option.id
+                        ) {
+                            taskStore.selectedCharacterModel = option.id
+                        }
                     }
                 }
-                .toggleStyle(.switch)
-
-                Toggle(isOn: Bindable(taskStore).addPastTasksEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Add Past Tasks")
-                            .font(.body)
-                        Text("Allow adding tasks to past dates in the Schedule tab")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.switch)
-            }
-            .padding(.horizontal)
-
-            Divider()
                 .padding(.horizontal)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Character Options")
-                    .font(.title2.bold())
-
-                Toggle(isOn: Bindable(taskStore).clickThroughEnabled) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Click Through Character")
-                            .font(.body)
-                        Text("When enabled, clicking the buddy won't open the app. You can still drag to reposition.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.switch)
 
                 Divider()
+                    .padding(.horizontal)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Hide Buddy")
-                        .font(.body)
+                    Text("Task Options")
+                        .font(.title2.bold())
 
-                    HStack(spacing: 12) {
-                        Text("\(taskStore.buddyHideMinutes) min")
-                            .font(.body.monospacedDigit().bold())
-                            .frame(width: 50, alignment: .trailing)
-                        Slider(value: Binding(
-                            get: { Double(taskStore.buddyHideMinutes) },
-                            set: { taskStore.buddyHideMinutes = Int($0) }
-                        ), in: 1...60, step: 1)
-                    }
-
-                    if taskStore.buddyHidden {
-                        HStack {
-                            Label("Buddy is hidden", systemImage: "eye.slash")
-                                .foregroundStyle(.orange)
-                            Spacer()
-                            Button("Show Now") {
-                                taskStore.showBuddy()
-                            }
-                        }
-                    } else {
-                        Button {
-                            taskStore.hideBuddy()
-                        } label: {
-                            Label("Hide Now", systemImage: "eye.slash")
+                    Toggle(isOn: Bindable(taskStore).undoFromHistoryEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Toggle from History")
+                                .font(.body)
+                            Text("Allow toggling tasks between completed and incomplete in history")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
+                    .toggleStyle(.switch)
+
+                    Toggle(isOn: Bindable(taskStore).addPastTasksEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Add Past Tasks")
+                                .font(.body)
+                            Text("Allow adding tasks to past dates in the Schedule tab")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .toggleStyle(.switch)
                 }
-            }
-            .padding(.horizontal)
-
-            Divider()
                 .padding(.horizontal)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Data")
-                    .font(.title2.bold())
+                Divider()
+                    .padding(.horizontal)
 
-                HStack(spacing: 12) {
-                    Button {
-                        taskStore.populateDummyData()
-                    } label: {
-                        Label("Populate Dummy Data", systemImage: "text.badge.plus")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Character Options")
+                        .font(.title2.bold())
+
+                    Toggle(isOn: Bindable(taskStore).clickThroughEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Click Through Character")
+                                .font(.body)
+                            Text("When enabled, clicking the buddy won't open the app. You can still drag to reposition.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .toggleStyle(.switch)
 
-                    Button(role: .destructive) {
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Delete All Data", systemImage: "trash")
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Hide Buddy")
+                            .font(.body)
+
+                        HStack(spacing: 12) {
+                            Text("\(taskStore.buddyHideMinutes) min")
+                                .font(.body.monospacedDigit().bold())
+                                .frame(width: 50, alignment: .trailing)
+                            Slider(value: Binding(
+                                get: { Double(taskStore.buddyHideMinutes) },
+                                set: { taskStore.buddyHideMinutes = Int($0) }
+                            ), in: 1...60, step: 1)
+                        }
+
+                        if taskStore.buddyHidden {
+                            HStack {
+                                Label("Buddy is hidden", systemImage: "eye.slash")
+                                    .foregroundStyle(.orange)
+                                Spacer()
+                                Button("Show Now") {
+                                    taskStore.showBuddy()
+                                }
+                            }
+                        } else {
+                            Button {
+                                taskStore.hideBuddy()
+                            } label: {
+                                Label("Hide Now", systemImage: "eye.slash")
+                            }
+                        }
                     }
                 }
-            }
-            .padding(.horizontal)
+                .padding(.horizontal)
 
-        }
-        .padding(.top)
+                Divider()
+                    .padding(.horizontal)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Data")
+                        .font(.title2.bold())
+
+                    HStack(spacing: 12) {
+                        Button {
+                            taskStore.populateDummyData()
+                        } label: {
+                            Label("Populate Dummy Data", systemImage: "text.badge.plus")
+                        }
+
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete All Data", systemImage: "trash")
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.top)
         }
         .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {

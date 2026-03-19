@@ -9,8 +9,8 @@ struct CharacterView: View {
 
     var body: some View {
         CharacterSceneView(taskTitle: currentTaskTitle ?? "All done!", modelName: modelName)
-            .frame(width: 420, height: 280)
-            .id(modelName) // Force full recreation when character changes
+            .frame(width: 220, height: 280)
+            .id(modelName)
     }
 }
 
@@ -103,11 +103,11 @@ struct CharacterSceneView: NSViewRepresentable {
             .paragraphStyle: paragraphStyle,
         ]
 
-        // Measure text size (max width 400, allow wrapping)
+        // Measure text size — unlimited height so long text is never clipped
         let maxTextWidth: CGFloat = 400
         let attrString = NSAttributedString(string: text, attributes: attributes)
         let textBounds = attrString.boundingRect(
-            with: NSSize(width: maxTextWidth, height: 200),
+            with: NSSize(width: maxTextWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading]
         )
 
@@ -206,12 +206,8 @@ struct CharacterSceneView: NSViewRepresentable {
 
         scene.rootNode.addChildNode(wrapper)
 
-        // Attach sign above the character — always on wrapper for reliability
+        // Attach sign above the character (name + billboard already set in createSignNode)
         let signNode = createSignNode(text: taskTitle)
-        signNode.name = "signBoard"
-        let billboard = SCNBillboardConstraint()
-        billboard.freeAxes = [.X, .Y]
-        signNode.constraints = [billboard]
 
         // Position above model top in wrapper's local (unscaled) space
         let signY = Float(sMax.y) + Float(modelHeight) * 0.2
@@ -287,15 +283,14 @@ struct CharacterSceneView: NSViewRepresentable {
     }
 
     private func applyBundledTexture(to node: SCNNode) {
-        guard let texURL = Bundle.main.url(forResource: "paimon_tex_1", withExtension: "png"),
-              let texImage = NSImage(contentsOf: texURL) else {
-            if let texURL = Bundle.main.url(forResource: "paimon_tex_0", withExtension: "jpg"),
-               let texImage = NSImage(contentsOf: texURL) {
-                applyImage(texImage, to: node)
+        let candidates: [(String, String)] = [("paimon_tex_1", "png"), ("paimon_tex_0", "jpg")]
+        for (name, ext) in candidates {
+            if let url = Bundle.main.url(forResource: name, withExtension: ext),
+               let image = NSImage(contentsOf: url) {
+                applyImage(image, to: node)
+                return
             }
-            return
         }
-        applyImage(texImage, to: node)
     }
 
     private func applyImage(_ image: NSImage, to node: SCNNode) {
@@ -392,12 +387,11 @@ struct CharacterSceneView: NSViewRepresentable {
     private func setupCamera(in scene: SCNScene) {
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        cameraNode.camera?.fieldOfView = 45
+        cameraNode.camera?.fieldOfView = 50
         cameraNode.camera?.zNear = 0.1
         cameraNode.camera?.zFar = 100
-        // Offset camera left so character appears on the right side of the wider view
-        cameraNode.position = SCNVector3(-2.0, 1.5, 4.2)
-        cameraNode.look(at: SCNVector3(-0.8, 1.2, 0))
+        cameraNode.position = SCNVector3(0, 1.6, 4.2)
+        cameraNode.look(at: SCNVector3(0, 1.35, 0))
         scene.rootNode.addChildNode(cameraNode)
     }
 

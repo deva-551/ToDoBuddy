@@ -116,10 +116,7 @@ struct HistoryView: View {
     }
 
     private func formattedDate(_ dateString: String) -> String {
-        guard let date = taskStore.dateFromString(dateString) else { return dateString }
-        let f = DateFormatter()
-        f.dateStyle = .long
-        return f.string(from: date)
+        taskStore.formattedLongDate(dateString)
     }
 }
 

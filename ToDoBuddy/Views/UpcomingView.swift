@@ -21,6 +21,7 @@ struct UpcomingView: View {
             Divider()
 
             let scheduledDates = taskStore.futureDates()
+            let totalScheduled = scheduledDates.reduce(0) { $0 + taskStore.tasks(for: $1).count }
 
             if scheduledDates.isEmpty {
                 Spacer()
@@ -28,6 +29,22 @@ struct UpcomingView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
             } else {
+                if totalScheduled > 1 {
+                    HStack {
+                        Spacer()
+                        Button {
+                            taskStore.moveAllScheduledToToday()
+                        } label: {
+                            Label("Move All to Today", systemImage: "calendar.badge.plus")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.blue)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 4)
+                }
+
                 List {
                     ForEach(scheduledDates, id: \.self) { date in
                         Section {
@@ -35,7 +52,8 @@ struct UpcomingView: View {
                                 ScheduleTaskRow(
                                     task: task,
                                     onDelete: { taskStore.deleteTask(task) },
-                                    onRename: { taskStore.updateTaskTitle(task, newTitle: $0) }
+                                    onRename: { taskStore.updateTaskTitle(task, newTitle: $0) },
+                                    onMoveToToday: { taskStore.rescheduleToToday(task) }
                                 )
                             }
                         } header: {
@@ -91,10 +109,7 @@ struct UpcomingView: View {
     }
 
     private func formattedDate(_ dateString: String) -> String {
-        guard let date = taskStore.dateFromString(dateString) else { return dateString }
-        let f = DateFormatter()
-        f.dateStyle = .long
-        return f.string(from: date)
+        taskStore.formattedLongDate(dateString)
     }
 }
 
@@ -102,14 +117,22 @@ struct ScheduleTaskRow: View {
     let task: TaskItem
     let onDelete: () -> Void
     let onRename: (String) -> Void
+    let onMoveToToday: () -> Void
     @State private var showDeleteAlert = false
     @State private var showEditAlert = false
+    @State private var showMoveAlert = false
     @State private var editText = ""
 
     var body: some View {
         HStack {
             Text(task.title)
             Spacer()
+            Button { showMoveAlert = true } label: {
+                Text("Move to Today")
+                    .font(.caption2)
+                    .foregroundStyle(.blue)
+            }
+            .buttonStyle(.borderless)
             Button {
                 editText = task.title
                 showEditAlert = true
@@ -129,6 +152,12 @@ struct ScheduleTaskRow: View {
             .opacity(0.6)
         }
         .padding(.vertical, 2)
+        .alert("Move to Today?", isPresented: $showMoveAlert) {
+            Button("Move", action: onMoveToToday)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\"\(task.title)\" will be moved to today's tasks.")
+        }
         .alert("Edit Task", isPresented: $showEditAlert) {
             TextField("Task title", text: $editText)
             Button("Save") {
