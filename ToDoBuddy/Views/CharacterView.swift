@@ -5,7 +5,7 @@ import SceneKit
 
 struct CharacterView: View {
     let currentTaskTitle: String?
-    var modelName: String = "character"
+    var modelName: String = "sitting_laughing"
 
     var body: some View {
         CharacterSceneView(taskTitle: currentTaskTitle ?? "All done!", modelName: modelName)
@@ -166,15 +166,8 @@ struct CharacterSceneView: NSViewRepresentable {
             }
         }
 
-        if let objURL = Bundle.main.url(forResource: "paimon", withExtension: "obj"),
-           let modelScene = try? SCNScene(url: objURL) {
-            setupStaticModel(modelScene, into: scene)
-            return
-        }
-
         let placeholder = createPlaceholder()
         scene.rootNode.addChildNode(placeholder)
-        startFallbackWalkCycle(on: placeholder)
     }
 
     // MARK: - Animated Model (DAE from Mixamo)
@@ -244,129 +237,6 @@ struct CharacterSceneView: NSViewRepresentable {
                 player.play()
             }
         }
-    }
-
-    // MARK: - Static Model (OBJ fallback)
-
-    private func setupStaticModel(_ modelScene: SCNScene, into scene: SCNScene) {
-        let characterNode = SCNNode()
-        characterNode.name = "character"
-        for child in modelScene.rootNode.childNodes {
-            characterNode.addChildNode(child.clone())
-        }
-
-        applyBundledTexture(to: characterNode)
-
-        let (minBound, maxBound) = characterNode.boundingBox
-        let modelHeight = maxBound.y - minBound.y
-        if modelHeight > 0 {
-            let s = Float(1.6 / modelHeight)
-            characterNode.scale = SCNVector3(s, s, s)
-        }
-
-        let (sMin, sMax) = characterNode.boundingBox
-        let centerX = (sMin.x + sMax.x) / 2 * CGFloat(characterNode.scale.x)
-        let centerY = (sMin.y + sMax.y) / 2 * CGFloat(characterNode.scale.y)
-        characterNode.position = SCNVector3(-Float(centerX), -Float(centerY), 0)
-
-        let wrapper = SCNNode()
-        wrapper.name = "walkWrapper"
-        wrapper.addChildNode(characterNode)
-        scene.rootNode.addChildNode(wrapper)
-
-        // Add sign above static model too
-        let signNode = createSignNode(text: taskTitle)
-        signNode.position = SCNVector3(0, 1.8, 0)
-        wrapper.addChildNode(signNode)
-
-        startFallbackWalkCycle(on: wrapper)
-    }
-
-    private func applyBundledTexture(to node: SCNNode) {
-        let candidates: [(String, String)] = [("paimon_tex_1", "png"), ("paimon_tex_0", "jpg")]
-        for (name, ext) in candidates {
-            if let url = Bundle.main.url(forResource: name, withExtension: ext),
-               let image = NSImage(contentsOf: url) {
-                applyImage(image, to: node)
-                return
-            }
-        }
-    }
-
-    private func applyImage(_ image: NSImage, to node: SCNNode) {
-        node.enumerateChildNodes { child, _ in
-            if let geometry = child.geometry {
-                let material = SCNMaterial()
-                material.diffuse.contents = image
-                material.diffuse.wrapS = .repeat
-                material.diffuse.wrapT = .repeat
-                material.isDoubleSided = true
-                material.lightingModel = .physicallyBased
-                material.roughness.contents = NSNumber(value: 0.6)
-                material.metalness.contents = NSNumber(value: 0.1)
-                geometry.materials = [material]
-            }
-        }
-    }
-
-    // MARK: - Fallback Walk Cycle
-
-    private func startFallbackWalkCycle(on node: SCNNode) {
-        let stepDist: CGFloat = 0.3
-        let stepTime: TimeInterval = 0.35
-        let turnTime: TimeInterval = 0.25
-
-        let bounceUp = SCNAction.moveBy(x: 0, y: 0.05, z: 0, duration: stepTime * 0.35)
-        bounceUp.timingMode = .easeOut
-        let bounceDown = SCNAction.moveBy(x: 0, y: -0.05, z: 0, duration: stepTime * 0.65)
-        bounceDown.timingMode = .easeIn
-        let bounce = SCNAction.sequence([bounceUp, bounceDown])
-
-        let leanRight = SCNAction.rotateTo(x: 0, y: 0, z: -0.06, duration: stepTime * 0.4)
-        let leanLeft = SCNAction.rotateTo(x: 0, y: 0, z: 0.06, duration: stepTime * 0.4)
-        let leanBack = SCNAction.rotateTo(x: 0, y: 0, z: 0, duration: stepTime * 0.3)
-
-        let moveRight = SCNAction.moveBy(x: stepDist, y: 0, z: 0, duration: stepTime)
-        moveRight.timingMode = .easeInEaseOut
-        let stepRight = SCNAction.group([moveRight, bounce, SCNAction.sequence([leanRight, leanBack])])
-
-        let moveLeft = SCNAction.moveBy(x: -stepDist, y: 0, z: 0, duration: stepTime)
-        moveLeft.timingMode = .easeInEaseOut
-        let stepLeft = SCNAction.group([moveLeft, bounce, SCNAction.sequence([leanLeft, leanBack])])
-
-        let faceRight = SCNAction.rotateTo(x: 0, y: -.pi / 2, z: 0, duration: turnTime)
-        faceRight.timingMode = .easeInEaseOut
-        let faceLeft = SCNAction.rotateTo(x: 0, y: .pi / 2, z: 0, duration: turnTime)
-        faceLeft.timingMode = .easeInEaseOut
-        let faceCamera = SCNAction.rotateTo(x: 0, y: 0, z: 0, duration: turnTime)
-        faceCamera.timingMode = .easeInEaseOut
-
-        let idleUp = SCNAction.moveBy(x: 0, y: 0.04, z: 0, duration: 0.7)
-        idleUp.timingMode = .easeInEaseOut
-        let idleDown = SCNAction.moveBy(x: 0, y: -0.04, z: 0, duration: 0.7)
-        idleDown.timingMode = .easeInEaseOut
-        let idleBob = SCNAction.sequence([idleUp, idleDown])
-
-        let lookLeft = SCNAction.rotateTo(x: 0, y: CGFloat.pi * 0.08, z: 0, duration: 1.0)
-        lookLeft.timingMode = .easeInEaseOut
-        let lookRight = SCNAction.rotateTo(x: 0, y: -CGFloat.pi * 0.08, z: 0, duration: 1.0)
-        lookRight.timingMode = .easeInEaseOut
-        let lookCenter = SCNAction.rotateTo(x: 0, y: 0, z: 0, duration: 0.5)
-        lookCenter.timingMode = .easeInEaseOut
-
-        let idlePhase = SCNAction.group([
-            SCNAction.repeat(idleBob, count: 2),
-            SCNAction.sequence([lookLeft, lookRight, lookCenter])
-        ])
-
-        let cycle = SCNAction.sequence([
-            faceCamera, idlePhase,
-            faceRight, stepRight, stepRight,
-            faceCamera, idlePhase,
-            faceLeft, stepLeft, stepLeft,
-        ])
-
-        node.runAction(SCNAction.repeatForever(cycle))
     }
 
     // MARK: - Placeholder
