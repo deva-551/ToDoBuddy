@@ -5,7 +5,7 @@ import SceneKit
 
 struct CharacterView: View {
     let currentTaskTitle: String?
-    var modelName: String = "none"
+    var modelName: String = "angry"
 
     var body: some View {
         CharacterSceneView(taskTitle: currentTaskTitle ?? "All done!", modelName: modelName)
