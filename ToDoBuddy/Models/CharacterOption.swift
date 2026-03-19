@@ -10,8 +10,6 @@ struct CharacterOption: Identifiable, Equatable {
 
     static let allOptions: [CharacterOption] = [
         .none,
-        CharacterOption(id: "sitting_laughing", displayName: "Alex", description: "Always cheerful & laughing", icon: "face.smiling.fill"),
-        CharacterOption(id: "sitting_rubbing_arm", displayName: "Jordan", description: "Cool & relaxed", icon: "hand.raised.fill"),
     ]
 
     static func option(for id: String) -> CharacterOption {
