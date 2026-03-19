@@ -14,7 +14,4 @@ struct CharacterOption: Identifiable, Equatable {
         CharacterOption(id: "sitting", displayName: "Zoya", description: "Calm & composed", icon: "figure.seated.side"),
     ]
 
-    static func option(for id: String) -> CharacterOption {
-        allOptions.first { $0.id == id } ?? allOptions[0]
-    }
 }

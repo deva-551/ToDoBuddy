@@ -165,16 +165,6 @@ final class TaskStore {
         save()
     }
 
-    func undoTask(_ task: TaskItem) {
-        guard let i = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-        let maxOrder = tasks.filter { $0.date == todayString }.map(\.sortOrder).max() ?? -1
-        tasks[i].date = todayString
-        tasks[i].isCompleted = false
-        tasks[i].completedAt = nil
-        tasks[i].sortOrder = maxOrder + 1
-        save()
-    }
-
     func moveTasks(for date: String, from source: IndexSet, to destination: Int) {
         var dateTasks = tasks(for: date)
         dateTasks.move(fromOffsets: source, toOffset: destination)

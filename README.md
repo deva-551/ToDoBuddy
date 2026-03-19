@@ -13,7 +13,7 @@ ToDoBuddy is not your ordinary to-do list. It features a persistent floating 3D 
 ## Features
 
 - **3D Character Companion** — An animated 3D character floats on your desktop, displaying your current task on a dynamic sign board
-- **5 Character Options** — Choose from Catwalk (walking), Clapping, Laughing, Rubbing Arm, and Rubbing Arm Alt (MEDEA variant), all sourced from Mixamo
+- **3 Character Options** — Choose from No Buddy (task-only), Alex (feisty & fired up), and Zoya (calm & composed), with 3D models sourced from Mixamo
 - **Multi-Monitor Support** — The floating character automatically follows your cursor across displays with smooth animation
 - **Menu Bar Integration** — Quick access to your current task and the app from the macOS status bar
 - **Task Organization** — Tasks are split into Today, Missed (overdue), History, and Scheduled (future) views
@@ -42,9 +42,9 @@ ToDoBuddy is not your ordinary to-do list. It features a persistent floating 3D 
 
 The character system is built on **SceneKit** with a full rendering pipeline:
 
-1. **Model Loading** — DAE files with embedded skeletal animations are loaded from the app bundle, with OBJ fallback and a placeholder box as last resort
+1. **Model Loading** — DAE files with embedded skeletal animations are loaded from the app bundle, with a placeholder box as fallback
 2. **Auto-Scaling** — Models are normalized to 1.6 units height regardless of original dimensions
-3. **Animation** — Embedded Mixamo animations loop infinitely; static models get a procedural walk cycle with stepping, turning, and idle bobbing
+3. **Animation** — Embedded Mixamo animations loop infinitely
 4. **PBR Texturing** — Materials use diffuse, specular, normal, and glossiness texture maps for realistic rendering
 5. **3-Point Lighting** — Studio-quality setup with ambient (600), key (1000), fill (400), and rim (300) intensity lights
 6. **Floating Sign Board** — A 3D plane with billboard constraint renders the current task title using custom `NSImage` drawing with cream background, brown border, and shadow
